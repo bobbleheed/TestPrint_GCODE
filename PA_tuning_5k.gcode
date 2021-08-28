@@ -53,7 +53,7 @@
 ; Prime Speed = 1800
 ; Dwell Time = 2 s
 ;
-PRINT_START BED_TEMP=xxx.x EXTRUDER_TEMP=xxx.x
+PRINT_START BED_TEMP=xxx.0 EXTRUDER_TEMP=xxx.0
 ;
 ; start the Test pattern
 ;
@@ -546,12 +546,21 @@ G1 E-0.5 F6000 ; retract
 G1 Z0.3 F1200 ; zHop
 ;
 M400                           ; wait for buffer to clear
-G92 E0                         ; zero the extruder
-G1 E-5.0 F3600                 ; retract filament
-G91                            ; relative positioning
-G0 Z1.00 X20.0 Y20.0 F18000    ; move nozzle to remove stringing
+G92 E0                         
+G1 E-5.0 F3600                 
+G91                            
+G0 Z1.00 X20.0 Y20.0 F18000    
+TURN_OFF_HEATERS
 M107                           ; turn off fan
-G1 Z2 F3000                    ; move nozzle up 2mm
-G90                            ; absolute positioning
-G0  X209 Y305 F3600            ; park nozzle at rear 
+G1 Z2 F3000                                                
+      {% set max_z = printer.toolhead.axis_maximum.z|float %}
+      {% set act_z = printer.toolhead.position.z|float %}
+      {% if act_z < (max_z - 2.0) %}
+          {% set z_safe = 2.0 %}
+      {% else %}
+          {% set z_safe = max_z - act_z %}
+      {% endif %}
+G1 Z{z_safe}
+G90
+G1  X150 Y310 F3600            ; park nozzle at rear 
 BED_MESH_CLEAR
